@@ -78,23 +78,23 @@ def ui_updateDescriptionJson(args=None):
     currentScript = cmds.textScrollList('ScriptScrollList',query=True,selectItem=True) or None
     if currentUser != None:
         if currentUser != ['All']:
-        StarterText = cmds.scrollField('descriptionField',query=True,tx=True)
+            StarterText = cmds.scrollField('descriptionField',query=True,tx=True)
 
-        #If window exists delete 
-        if cmds.window('ui_Description', exists=True):
-            cmds.deleteUI('ui_Description')
-        #Create Initial Window
-        cmds.window('ui_Description', title= 'jsScriptBins Description Editor', s = False, widthHeight=[400, 400])
-        cmds.columnLayout()
-        cmds.scrollField('ui_description_textField',
-        editable=True,
-        w=398,
-        h=350,
-        wordWrap=True,
-        text=StarterText )
-        cmds.button('Updated Description',w=398,h=50,c=updateDescriptionJson)
-        cmds.setParent('..')
-        cmds.showWindow( 'ui_Description' )
+            #If window exists delete 
+            if cmds.window('ui_Description', exists=True):
+                cmds.deleteUI('ui_Description')
+            #Create Initial Window
+            cmds.window('ui_Description', title= 'jsScriptBins Description Editor', s = False, widthHeight=[400, 400])
+            cmds.columnLayout()
+            cmds.scrollField('ui_description_textField',
+            editable=True,
+            w=398,
+            h=350,
+            wordWrap=True,
+            text=StarterText )
+            cmds.button('Updated Description',w=398,h=50,c=updateDescriptionJson)
+            cmds.setParent('..')
+            cmds.showWindow( 'ui_Description' )
 
 
 def ui_switch_to_user_scripts(*args):
