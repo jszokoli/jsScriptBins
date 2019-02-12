@@ -55,7 +55,7 @@ def ui_open_user_folder(*args):
 def updateDescriptionJson(*args):
     newDescriptionValue = cmds.scrollField('ui_description_textField',query=True,tx=True)
     print newDescriptionValue
-    cmds.deleteUI('ui_ScriptBins_Description')
+    cmds.deleteUI('ui_Description')
     currentUser = cmds.textScrollList('UserScrollList',query=True,selectItem=True) or None
     if currentUser[0] != "All":
         currentScript = cmds.textScrollList('ScriptScrollList',query=True,selectItem=True)[0] or None
