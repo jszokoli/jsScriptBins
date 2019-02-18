@@ -107,12 +107,12 @@ class ScriptBins(object):
         currentUser = getpass.getuser()
         # print settings.scriptBinPath+settings.scriptBinLibraryName
         if os.path.isfile(settings.scriptBinPath+settings.scriptBinLibraryName+'.json'  ):
-            scriptDict = readJson(settings.scriptBinPath, settings.scriptBinLibraryName )
+            scriptDict = self.readJson(settings.scriptBinPath, settings.scriptBinLibraryName )
         else:
             scriptDict = {}
 
         if os.path.isfile(settings.scriptBinPath+currentUser+'/'+settings.descriptionDictName+'.json' ):
-            descDict = readJson(settings.scriptBinPath+currentUser+'/', settings.descriptionDictName )
+            descDict = self.readJson(settings.scriptBinPath+currentUser+'/', settings.descriptionDictName )
         else:
             descDict = {}
         jsonFiles = []

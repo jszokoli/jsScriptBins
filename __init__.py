@@ -1,1 +1,1 @@
-from .jsScriptBins_ui import ui_ScriptBins
+from .jsScriptBins_ui import launch_ui

@@ -5,25 +5,35 @@ import getpass
 import json
 import subprocess
 
+
+from . import jsScriptBinsCore
+from . import settings
+
+# scriptBin_Testing = True
+# scriptBinPath = '/job/comms/pipeline/dev/jszokoli/scriptBin/'
+# scriptBinLibraryName = 'scriptBinLibrary'
+# descriptionDictName = 'descriptions'
+
+
 class ScriptBins_ui(object):
 
     def __init__(self):
         print 'Initialized jsScriptBins_ui'
-        self.SB = jsScriptBins.ScriptBins()
+        self.SB = jsScriptBinsCore.ScriptBins()
         
 
     if sys.platform == 'darwin':
-        def openFolder(path):
+        def openFolder(self, path):
             subprocess.check_call(['open', '--', path])
     elif sys.platform == 'linux2':
-        def openFolder(path):
+        def openFolder(self, path):
             subprocess.check_call(['nautilus', '--', path])
     elif sys.platform == 'win32':
-        def openFolder(path):
+        def openFolder(self, path):
             subprocess.check_call(['explorer', path])
 
 
-    def load_user_python_file(scriptPath, selectedScript, fullScriptPath):
+    def load_user_python_file(self, scriptPath, selectedScript, fullScriptPath):
         # print scriptPath
         if scriptPath not in sys.path:
             sys.path.append(scriptPath)
@@ -31,7 +41,7 @@ class ScriptBins_ui(object):
         cmds.evalDeferred("execfile('{0}')".format(scriptPath+selectedScript))
 
 
-    def load_python_file(scriptPath, selectedScript, fullScriptPath):
+    def load_python_file(self, scriptPath, selectedScript, fullScriptPath):
         # print scriptPath
         if scriptPath not in sys.path:
             sys.path.append(scriptPath)
@@ -40,7 +50,7 @@ class ScriptBins_ui(object):
         # cmds.evalDeferred("import %s;%s.launch_ui()") %selectedScript
 
 
-    def load_python_module(scriptPath,selectedScript,fullScriptPath):
+    def load_python_module(self, scriptPath,selectedScript,fullScriptPath):
         cmds.warning('Create Package Launcher .py file for packages')
         # packagePath = fullScriptPath[:-11]
         # print packagePath
@@ -53,36 +63,36 @@ class ScriptBins_ui(object):
         # cmds.evalDeferred("import %s; %s.launch_ui()" %(packageName, packageName) ) 
 
 
-    def ui_open_user_folder(*args):
+    def ui_open_user_folder(self, *args):
         currentUser = getpass.getuser()
-        if os.path.isdir(scriptBinPath+currentUser):
-            openFolder(scriptBinPath+currentUser)
+        if os.path.isdir(settings.scriptBinPath+currentUser):
+            self.openFolder(settings.scriptBinPath+currentUser)
         else:
-            os.mkdir(scriptBinPath+currentUser)
-            openFolder(scriptBinPath+currentUser)
+            os.mkdir(settings.scriptBinPath+currentUser)
+            self.openFolder(settings.scriptBinPath+currentUser)
 
 
-    def updateDescriptionJson(*args):
+    def updateDescriptionJson(self, *args):
         newDescriptionValue = cmds.scrollField('ui_description_textField',query=True,tx=True)
         print newDescriptionValue
         cmds.deleteUI('ui_Description')
         currentUser = cmds.textScrollList('UserScrollList',query=True,selectItem=True) or None
         if currentUser[0] != "All":
             currentScript = cmds.textScrollList('ScriptScrollList',query=True,selectItem=True)[0] or None
-            if os.path.isfile(scriptBinPath+currentUser[0]+'/'+descriptionDictName+'.json'):
-                jsonIn = readJson(scriptBinPath+currentUser[0]+'/' ,descriptionDictName )
+            if os.path.isfile(settings.scriptBinPath+currentUser[0]+'/'+settings.descriptionDictName+'.json'):
+                jsonIn = self.SB.readJson(settings.scriptBinPath+currentUser[0]+'/' ,settings.descriptionDictName )
                 for script, description in jsonIn.iteritems():
                     if currentScript == script:
                         jsonIn[script] = newDescriptionValue
-                        print jsonIn
-                        writeJson(scriptBinPath+currentUser[0]+'/', descriptionDictName, jsonIn )
+                        # print jsonIn
+                        self.SB.writeJson(settings.scriptBinPath+currentUser[0]+'/', settings.descriptionDictName, jsonIn )
                         cmds.scrollField('descriptionField',edit=True,tx=newDescriptionValue)
             else:
                 print "Can't Find Description Json."
         else:
             pass
 
-    def ui_updateDescriptionJson(args=None):
+    def ui_updateDescriptionJson(self, args=None):
         currentUser = cmds.textScrollList('UserScrollList',query=True,selectItem=True) or None
 
         currentScript = cmds.textScrollList('ScriptScrollList',query=True,selectItem=True) or None
@@ -102,41 +112,41 @@ class ScriptBins_ui(object):
                 h=350,
                 wordWrap=True,
                 text=StarterText )
-                cmds.button('Updated Description',w=398,h=50,c=updateDescriptionJson)
+                cmds.button('Updated Description',w=398,h=50,c=self.updateDescriptionJson)
                 cmds.setParent('..')
                 cmds.showWindow( 'ui_Description' )
 
 
-    def ui_switch_to_user_scripts(*args):
+    def ui_switch_to_user_scripts(self, *args):
         currentUser = cmds.textScrollList('UserScrollList',query=True,selectItem=True) or None
         if currentUser != ["All"]:
             # print currentUser
             cmds.textScrollList('ScriptScrollList', edit = True, removeAll = True)
 
-            if os.path.isfile(scriptBinPath+scriptBinLibraryName+'.json'):
-                jsonIn = readJson(scriptBinPath,scriptBinLibraryName )
+            if os.path.isfile(settings.scriptBinPath+settings.scriptBinLibraryName+'.json'):
+                jsonIn = self.SB.readJson(settings.scriptBinPath,settings.scriptBinLibraryName )
 
-                userScripts = get_user_scripts_fromDict(jsonIn,currentUser)
+                userScripts = self.SB.get_user_scripts_fromDict(jsonIn,currentUser)
                 cmds.textScrollList('ScriptScrollList', edit = True, append = userScripts)
                 cmds.scrollField('descriptionField',edit=True,tx="")
         else:
-            ui_switch_to_allUsers_scripts()
+            self.ui_switch_to_allUsers_scripts()
 
 
 
-    def ui_switch_to_allUsers_scripts(*args):
+    def ui_switch_to_allUsers_scripts(self, *args):
         #currentUser = "All"
         # print currentUser
-        scriptDict = readJson(scriptBinPath,scriptBinLibraryName)
+        scriptDict = self.SB.readJson(settings.scriptBinPath,settings.scriptBinLibraryName)
         userNameList = []
         for userName,scripts in scriptDict.iteritems():
             userNameList.append(userName)
         cmds.textScrollList('ScriptScrollList', edit = True, removeAll = True)
         fullUserScripts = []
         for user in userNameList:
-            if os.path.isfile(scriptBinPath+scriptBinLibraryName+'.json'):
-                jsonIn = readJson(scriptBinPath,scriptBinLibraryName )
-                userScripts = get_user_scripts_fromDict(jsonIn,[user])
+            if os.path.isfile(settings.scriptBinPath+settings.scriptBinLibraryName+'.json'):
+                jsonIn = self.SB.readJson(settings.scriptBinPath,settings.scriptBinLibraryName )
+                userScripts = self.SB.get_user_scripts_fromDict(jsonIn,[user])
                 for script in userScripts:
                     fullUserScripts.append(user+'/'+script)
 
@@ -145,12 +155,12 @@ class ScriptBins_ui(object):
 
 
 
-    def ui_switch_script_description(*args):
+    def ui_switch_script_description(self, *args):
         currentUser = cmds.textScrollList('UserScrollList',query=True,selectItem=True)or None
         currentScript = cmds.textScrollList('ScriptScrollList',query=True,selectItem=True)[0]
         if currentUser[0] != "All":
-            if os.path.isfile(scriptBinPath+currentUser[0]+'/'+descriptionDictName+'.json'):
-                jsonIn = readJson(scriptBinPath+currentUser[0]+'/' ,descriptionDictName )
+            if os.path.isfile(settings.scriptBinPath+currentUser[0]+'/'+settings.descriptionDictName+'.json'):
+                jsonIn = self.SB.readJson(settings.scriptBinPath+currentUser[0]+'/' ,settings.descriptionDictName )
                 for script, description in jsonIn.iteritems():
                     if currentScript == script:
                         jsonDescription = jsonIn[script]
@@ -159,8 +169,8 @@ class ScriptBins_ui(object):
                 #print "Can't Find Description Json."
                 cmds.scrollField('descriptionField',edit=True,tx="Can't Find Description Json.")
         else:
-            if os.path.isfile(scriptBinPath+currentScript.split('/')[0]+'/'+descriptionDictName+'.json'):
-                jsonIn = readJson(scriptBinPath+currentScript.split('/')[0]+'/', descriptionDictName )
+            if os.path.isfile(settings.scriptBinPath+currentScript.split('/')[0]+'/'+settings.descriptionDictName+'.json'):
+                jsonIn = self.SB.readJson(settings.scriptBinPath+currentScript.split('/')[0]+'/', settings.descriptionDictName )
                 for script, description in jsonIn.iteritems():
                     if script in currentScript:
                         jsonDescription = jsonIn[script]
@@ -170,7 +180,7 @@ class ScriptBins_ui(object):
                 cmds.scrollField('descriptionField',edit=True,tx="Can't Find Description Json.")
 
 
-    def ui_run_selected_script(*args):
+    def ui_run_selected_script(self, *args):
         currentUser = cmds.textScrollList('UserScrollList',query=True,selectItem=True)or[]
         selectedScript = cmds.textScrollList('ScriptScrollList',query=True,selectItem=True)or []
 
@@ -184,35 +194,35 @@ class ScriptBins_ui(object):
         else:
             selectedScript='DONTDO'
 
-        fullScriptPath = scriptBinPath+currentUser+'/'+selectedScript
+        fullScriptPath = settings.scriptBinPath+currentUser+'/'+selectedScript
         # print currentUser
         if currentUser != "All":
-            scriptPath = scriptBinPath+currentUser+'/'
+            scriptPath = settings.scriptBinPath+currentUser+'/'
         else:
-            scriptPath = scriptBinPath
-        # print scriptBinPath
+            scriptPath = settings.scriptBinPath
+        # print settings.scriptBinPath
         if 'DONTDO' not in fullScriptPath:
             if '/' in selectedScript:
                 if currentUser == "All":
-                    load_user_python_file(scriptPath,selectedScript,fullScriptPath)
+                    self.load_user_python_file(scriptPath,selectedScript,fullScriptPath)
                 else:
-                    load_python_module(scriptPath,selectedScript,fullScriptPath)
+                    self.load_python_module(scriptPath,selectedScript,fullScriptPath)
             else:
                 # print 'THIS AINT A MODULE'
-                load_python_file(scriptPath,selectedScript,fullScriptPath)
+                self.load_python_file(scriptPath,selectedScript,fullScriptPath)
 
 
 
-    def ui_searchScripts(*args):
+    def ui_searchScripts(self, *args):
         currentSearchField = cmds.textField('scriptBinSearchField',query=True,text=True)
 
         currentUser = cmds.textScrollList('UserScrollList',query=True,selectItem=True) or None
         if currentUser != None:
             if currentUser[0] != 'All':
-                if os.path.isfile(scriptBinPath+scriptBinLibraryName+'.json'):
-                    jsonIn = readJson(scriptBinPath,scriptBinLibraryName )
+                if os.path.isfile(settings.scriptBinPath+settings.scriptBinLibraryName+'.json'):
+                    jsonIn = self.SB.readJson(settings.scriptBinPath,settings.scriptBinLibraryName )
 
-                    userScripts = get_user_scripts_fromDict(jsonIn,currentUser)
+                    userScripts = self.SB.get_user_scripts_fromDict(jsonIn,currentUser)
                     filteredScripts = []
                     for userScript in userScripts:
                         if currentSearchField.lower() in userScript.lower():
@@ -221,12 +231,12 @@ class ScriptBins_ui(object):
                     cmds.textScrollList('ScriptScrollList', edit = True, append = filteredScripts)
                     cmds.scrollField('descriptionField',edit=True,tx="")
             else: 
-                if os.path.isfile(scriptBinPath+scriptBinLibraryName+'.json'):
-                    jsonIn = readJson(scriptBinPath,scriptBinLibraryName )
-                    userList =  get_user_fromDict(jsonIn)
+                if os.path.isfile(settings.scriptBinPath+settings.scriptBinLibraryName+'.json'):
+                    jsonIn = self.SB.readJson(settings.scriptBinPath,settings.scriptBinLibraryName )
+                    userList =  self.SB.get_user_fromDict(jsonIn)
                     filteredScripts = []
                     for user in userList:
-                        userScripts = get_user_scripts_fromDict(jsonIn,[user])
+                        userScripts = self.SB.get_user_scripts_fromDict(jsonIn,[user])
                         for userScript in userScripts:
                             if currentSearchField.lower() in userScript.lower():
                                 filteredScripts.append(user+'/'+userScript)
@@ -239,7 +249,10 @@ class ScriptBins_ui(object):
 
 
 
-    def ui_ScriptBins(scriptDict):
+    def ui_ScriptBins(self):
+
+        scriptDict = self.SB.readJson(settings.scriptBinPath,settings.scriptBinLibraryName ) or {}
+        print scriptDict
         #If window exists delete 
         if cmds.window('ui_ScriptBins', exists=True):
             cmds.deleteUI('ui_ScriptBins')
@@ -251,10 +264,10 @@ class ScriptBins_ui(object):
 
         cmds.flowLayout()
         cmds.iconTextStaticLabel( st='iconOnly', i1='search.png')
-        cmds.textField('scriptBinSearchField',w=224,textChangedCommand = ui_searchScripts)
-        cmds.button('Open Folder',c=ui_open_user_folder)
-        cmds.button('Edit Description',c=ui_updateDescriptionJson )
-        cmds.button('Register Scripts', c = register_Scripts )
+        cmds.textField('scriptBinSearchField',w=224,textChangedCommand = self.ui_searchScripts)
+        cmds.button('Open Folder',c=self.ui_open_user_folder)
+        cmds.button('Edit Description',c=self.ui_updateDescriptionJson )
+        cmds.button('Register Scripts', c = self.SB.register_Scripts )
         cmds.setParent('..')
         userNameList = ['All']
         scriptList = []
@@ -274,7 +287,7 @@ class ScriptBins_ui(object):
         w=150,
         h=200,
         append=userNameList,
-        selectCommand= ui_switch_to_user_scripts )
+        selectCommand= self.ui_switch_to_user_scripts )
 
         cmds.setParent('..')
 
@@ -283,14 +296,14 @@ class ScriptBins_ui(object):
         cmds.textScrollList('ScriptScrollList',
         w=200,
         h=200,
-        selectCommand = ui_switch_script_description)
+        selectCommand = self.ui_switch_script_description)
 
         cmds.setParent('..')
 
         cmds.columnLayout(w=220)
         #cmds.textField('descriptionField',w=145,h=175,tx='',ed=0)
         cmds.scrollField('descriptionField',w=145,h=175,tx='',ed=0,wordWrap=True)
-        cmds.button('RunScript',w=145,l='Execute Selected Script',c=ui_run_selected_script)
+        cmds.button('RunScript',w=145,l='Execute Selected Script',c=self.ui_run_selected_script)
         # cmds.button()
         # cmds.button()
         cmds.setParent('..')
@@ -305,13 +318,12 @@ class ScriptBins_ui(object):
 
     #print cmds.window('ui_ScriptBins', query=True, widthHeight=True)
 
-    ui_ScriptBins( readJson(scriptBinPath,scriptBinLibraryName ) )
+#self.ui_ScriptBins( self.SB.readJson(settings.scriptBinPath,settings.scriptBinLibraryName ) )
 
 
-
-    # path = "/job/comms/pipeline/dev/jszokoli/scriptBin/jszokoli/"
-    # openFolder(path)
-
-
+def launch_ui():
+    uiObject = ScriptBins_ui()
+    uiObject.ui_ScriptBins()
+    #register_Scripts()
 
 

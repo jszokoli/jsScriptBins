@@ -1,6 +1,7 @@
 ###jsScriptBins Settings
 
 scriptBin_Testing = True
-scriptBinPath = '/job/comms/pipeline/dev/jszokoli/scriptBin/'
+scriptBinPath = 'F:\\scriptBins\\'
+#Must end in /
 scriptBinLibraryName = 'scriptBinLibrary'
 descriptionDictName = 'descriptions'
