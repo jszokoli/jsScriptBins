@@ -70,6 +70,7 @@ class ScriptBins_ui(object):
         else:
             os.mkdir(settings.scriptBinPath+currentUser)
             self.openFolder(settings.scriptBinPath+currentUser)
+            cmds.textScrollList('UserScrollList',edit=True,append=currentUser)
 
 
     def updateDescriptionJson(self, *args):
@@ -259,15 +260,18 @@ class ScriptBins_ui(object):
 
         #Create Initial Window
         mainWindow = cmds.window('ui_ScriptBins', title= 'jsScriptBins',menuBar=True)
-        cmds.menu( label='Edit', tearOff=True ,parent='ui_ScriptBins' )
+        cmds.menu( label='Edit', tearOff=False ,parent='ui_ScriptBins' )
+        cmds.menuItem(label = 'Refresh')
+        cmds.setParent('..')
         cmds.frameLayout("ScriptEdit")
 
         cmds.flowLayout()
         cmds.iconTextStaticLabel( st='iconOnly', i1='search.png')
         cmds.textField('scriptBinSearchField',w=224,textChangedCommand = self.ui_searchScripts)
         cmds.button('Open Folder',c=self.ui_open_user_folder)
-        cmds.button('Edit Description',c=self.ui_updateDescriptionJson )
         cmds.button('Register Scripts', c = self.SB.register_Scripts )
+        cmds.button('Edit Description',c=self.ui_updateDescriptionJson )
+        
         cmds.setParent('..')
         userNameList = ['All']
         scriptList = []
