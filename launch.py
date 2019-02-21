@@ -1,7 +1,9 @@
 import sys
 from os.path import expanduser
 home = expanduser("~")
-sys.path.append(home+"/maya/scripts/jsTK/")
+userPath = home+"/maya/scripts/jsTK/"
+if userPath not in sys.path:
+    sys.path.append(userPath)
 
 import jsScriptBins.utilities
 jsScriptBins.utilities.deleteModules('jsScriptBins')

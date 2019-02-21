@@ -33,6 +33,17 @@ class ScriptBins_ui(object):
             subprocess.check_call(['explorer', path])
 
 
+    def reload_ui(self,*args):
+        scriptDict = self.SB.readJson(settings.scriptBinPath,settings.scriptBinLibraryName ) or {}
+        userNameList = ['All']
+        scriptList = []
+
+        for userName,scripts in scriptDict.iteritems():
+            userNameList.append(userName)
+            scriptList.append(scripts)
+        cmds.textScrollList('UserScrollList',edit = True, removeAll=True)
+        cmds.textScrollList('UserScrollList',edit = True, append=userNameList)
+
     def load_user_python_file(self, scriptPath, selectedScript, fullScriptPath):
         # print scriptPath
         if scriptPath not in sys.path:
@@ -261,7 +272,7 @@ class ScriptBins_ui(object):
         #Create Initial Window
         mainWindow = cmds.window('ui_ScriptBins', title= 'jsScriptBins',menuBar=True)
         cmds.menu( label='Edit', tearOff=False ,parent='ui_ScriptBins' )
-        cmds.menuItem(label = 'Refresh')
+        cmds.menuItem(label = 'Refresh',c=self.reload_ui )
         cmds.setParent('..')
         cmds.frameLayout("ScriptEdit")
 
